@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 12px/1.4 Inter, system-ui, sans-serif; margin: 0; color: var(--figma-color-text, #222); background: var(--figma-color-bg, #fff); }
+  header { position: sticky; top: 0; background: var(--figma-color-bg, #fff); border-bottom: 1px solid var(--figma-color-border, #ddd); padding: 8px 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; z-index: 1; }
+  header .meta { color: var(--figma-color-text-secondary, #666); }
+  code { font-family: ui-monospace, monospace; background: var(--figma-color-bg-secondary, #eee); padding: 1px 4px; border-radius: 3px; }
+  button { font: inherit; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--figma-color-border, #ccc); background: var(--figma-color-bg, #fff); color: inherit; cursor: pointer; }
+  button.primary { background: var(--figma-color-bg-brand, #0d99ff); color: #fff; border-color: transparent; }
+  button:disabled { opacity: .5; cursor: default; }
+  #banner { display: none; margin: 8px 12px 0; padding: 6px 10px; border-radius: 5px; background: #fff3cd; color: #5c4400; }
+  #banner.error { background: #fde2e1; color: #7a1410; }
+  main { padding: 8px 12px 16px; }
+  h2 { font-size: 13px; margin: 14px 0 4px; }
+  h2 small { font-weight: 400; color: var(--figma-color-text-secondary, #666); }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--figma-color-border, #eee); vertical-align: top; }
+  th { font-weight: 600; color: var(--figma-color-text-secondary, #666); }
+  td.actions { white-space: nowrap; text-align: right; }
+  .sw { display: inline-block; width: 10px; height: 10px; border: 1px solid #8884; border-radius: 2px; vertical-align: -1px; margin-right: 4px; }
+  ul { margin: 4px 0; padding-left: 18px; color: var(--figma-color-text-secondary, #666); }
+  .ok { color: #1a7f37; }
+</style>
+</head>
+<body>
+<header>
+  <button id="sync" class="primary">Sync</button>
+  <span class="meta">Last checked: <span id="checked">never</span></span>
+  <span class="meta">Repo commit: <code id="sha">-</code></span>
+  <button id="clear" title="Show every ignored item again">Clear ignored</button>
+</header>
+<div id="banner"></div>
+<main id="out">Loading…</main>
+<script>"use strict";(()=>{var $="simonb-dc/shadcn-playtest",f=`https://raw.githubusercontent.com/${$}/main/`,k=300*1e3,o=t=>document.getElementById(t),h="",l=!1,a=t=>t.replace(/[&<>"]/g,e=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[e]);function d(t,e=""){let i=o("banner");i.style.display=t?"block":"none",i.className=e,i.textContent=t}async function p(t){let e=await fetch(t+(t.includes("?")?"&":"?")+"t="+Date.now(),{cache:"no-store"});if(!e.ok)throw new Error(`${e.status} ${e.statusText} for ${t}`);return e.json()}async function b(){return(await p(`https://api.github.com/repos/${$}/commits/main`)).sha}async function u(t=""){if(!l){l=!0,o("sync").disabled=!0,d(t||"Fetching from GitHub\u2026");try{let[e,i,g]=await Promise.all([b(),p(f+"figma-map.json"),p(f+"measurements/light.json")]);await p(f+"measurements/dark.json"),h=e,o("sha").textContent=e.slice(0,7),parent.postMessage({pluginMessage:{type:"compare",map:i,light:g}},"*")}catch(e){d("Fetch failed: "+e,"error"),l=!1,o("sync").disabled=!1}}}function w(t){var y;o("checked").textContent=new Date(t.checkedAt).toLocaleTimeString();let e=new Map;for(let n of t.diffs)((y=e.get(n.component))!=null?y:e.set(n.component,[]).get(n.component)).push(n);let i=n=>n.startsWith("#")?`<span class="sw" style="background:${a(n)}"></span>`:"",g=new Map,c="";t.diffs.length?c+=`<p>${t.diffs.length} difference${t.diffs.length===1?"":"s"}${t.ignoredCount?`, ${t.ignoredCount} ignored`:""}.</p>`:c+=`<p class="ok">No differences${t.ignoredCount?` (${t.ignoredCount} ignored)`:""}.</p>`;for(let[n,r]of e){c+=`<h2>${a(n)} <small>${r.length}</small></h2><table><tr><th>Variant</th><th>Property</th><th>Code</th><th>Figma</th><th></th></tr>`;for(let s of r)g.set(s.id,s),c+=`<tr><td>${a(s.variant)}</td><td>${a(s.prop)}</td><td>${i(s.code)}${a(s.code)}</td><td>${i(s.figma)}${a(s.figma)}</td><td class="actions"><button data-act="apply" data-id="${a(s.id)}">Apply</button> <button data-act="ignore" data-id="${a(s.id)}">Ignore</button></td></tr>`;c+="</table>"}t.skipped.length&&(c+=`<h2>Skipped <small>${t.skipped.length}</small></h2><ul>`+t.skipped.map(n=>`<li><b>${a(n.component)}</b>: ${a(n.reason)}</li>`).join("")+"</ul>"),t.notes.length&&(c+=`<h2>Unmatched variants <small>${t.notes.length}</small></h2><ul>`+t.notes.map(n=>`<li>${a(n)}</li>`).join("")+"</ul>");let m=o("out");m.innerHTML=c,m.onclick=n=>{let r=n.target.closest("button[data-act]");if(!r)return;let s=g.get(r.dataset.id);s&&parent.postMessage({pluginMessage:{type:r.dataset.act,diff:s}},"*")}}window.onmessage=t=>{let e=t.data.pluginMessage;e&&(e.type==="result"?(l=!1,o("sync").disabled=!1,d(""),w(e)):e.type==="error"?(l=!1,o("sync").disabled=!1,d(e.message,"error")):e.type==="toast"&&d(e.message,"error"))};o("sync").onclick=()=>u();o("clear").onclick=()=>parent.postMessage({pluginMessage:{type:"clear-ignored"}},"*");setInterval(async()=>{if(!l)try{let t=await b();t!==h&&await u(`Repo changed (${h.slice(0,7)} \u2192 ${t.slice(0,7)}), re-checking\u2026`)}catch(t){d("SHA check failed: "+t,"error")}},k);u();})();
+</script>
+</body>
+</html>
