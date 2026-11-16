@@ -1,0 +1,26 @@
+{
+  "figmaFile": "7FfUnoOiC22clHRrl1EFOS",
+  "note": "Code is the source of truth. Node IDs are Figma component sets. 'measure' is the key prefix in measurements/light.json.",
+  "components": {
+    "accordion":    { "code": "src/components/ui/accordion.tsx",     "figma": { "Accordion": "17:12" },        "measure": "accordion" },
+    "alert":        { "code": "src/components/ui/alert.tsx",         "figma": { "Alert": "16:8" },             "measure": "alert" },
+    "alert-dialog": { "code": "src/components/ui/alert-dialog.tsx",  "figma": { "AlertDialog": "84:249" },    "measure": "alert-dialog" },
+    "aspect-ratio": { "code": "src/components/ui/aspect-ratio.tsx",  "figma": { "AspectRatio": "79:225" },    "measure": "aspect-ratio" },
+    "attachment":   { "code": "src/components/ui/attachment.tsx",    "figma": { "Attachment": "54:136" },    "measure": "attachment" },
+    "avatar":       { "code": "src/components/ui/avatar.tsx",        "figma": { "Avatar": "78:171", "AvatarGroup": "79:216" }, "measure": "avatar" },
+    "badge":        { "code": "src/components/ui/badge.tsx",         "figma": { "Badge": "14:16" },           "measure": "badge" },
+    "breadcrumb":   { "code": "src/components/ui/breadcrumb.tsx",    "figma": { "Breadcrumb": "84:271" },    "measure": "breadcrumb" },
+    "bubble":       { "code": "src/components/ui/bubble.tsx",        "figma": { "Bubble": "57:23" },         "measure": "bubble" },
+    "button":       { "code": "src/components/ui/button.tsx",        "figma": { "Button": "33:290", "Button (icon)": "34:50" }, "measure": "button" },
+    "button-group": { "code": "src/components/ui/button-group.tsx",  "figma": { "Button Group": "83:243" },  "measure": "button-group" },
+    "calendar":     { "code": "src/components/ui/calendar.tsx",      "figma": { "Calendar": "85:449", "CalendarDay": "58:36", "CalendarNavButton": "58:43" }, "measure": "calendar" },
+    "card":         { "code": "src/components/ui/card.tsx",          "figma": { "Card": "89:459" },          "measure": "card" },
+    "chart":        { "code": "src/components/ui/chart.tsx",         "figma": { "ChartDonut": "92:442", "ChartLegend": "92:447", "ChartTooltip": "92:460" }, "measure": "chart" },
+    "item":         { "code": "src/components/ui/item.tsx",          "figma": { "Item": "90:537" },          "measure": "item" },
+    "separator":    { "code": "src/components/ui/separator.tsx",     "figma": { "Separator": "90:401" },     "measure": "separator" },
+    "tabs":         { "code": "src/components/ui/tabs.tsx",          "figma": { "TabsList": "90:452", "TabsTrigger": "90:436" }, "measure": "tabs" },
+    "toggle":       { "code": "src/components/ui/toggle.tsx",        "figma": { "Toggle": "90:574" },        "measure": "toggle" },
+    "tooltip":      { "code": "src/components/ui/tooltip.tsx",       "figma": { "Tooltip": "90:418" },       "measure": "tooltip" }
+  },
+  "supporting": { "Icons": "70:158", "Image": "122:819" }
+}
