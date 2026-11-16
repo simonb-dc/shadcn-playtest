@@ -14,10 +14,10 @@ In Codespaces, port 5173 is forwarded via `.devcontainer/devcontainer.json` (als
 ## Setup (exact)
 
 ```bash
-npm create vite@latest app -- --template react-ts --no-interactive   # files copied into repo root
+npm create vite@9.3.4 app -- --template react-ts --no-interactive   # files copied into repo root
 npm i tailwindcss @tailwindcss/vite react-router-dom
-npx shadcn@latest init -b base -p nova -y        # Base UI + Nova preset; baseColor neutral
-npx shadcn@latest add button badge avatar alert accordion breadcrumb button-group \
+npx shadcn@4.23.0 init -b base -p nova -y        # Base UI + Nova preset; baseColor neutral
+npx shadcn@4.23.0 add button badge avatar alert accordion breadcrumb button-group \
   alert-dialog aspect-ratio attachment bubble calendar -y
 ```
 
@@ -50,7 +50,11 @@ The `cn` import is `cn@0.5.2` (official `shadcn-ui/cn` package, registry default
 - No `className` overrides on components. Scaffolding CSS is in `src/demo/demo.css` and only targets the grid and cell wrappers.
 - Cells are fixed 288px wide; grid column counts are fixed per section.
 - Real attributes for: `disabled`, `aria-invalid`, open accordion (`defaultValue`), attachment `state`, calendar selection.
-- **hover / focus-visible / active cannot be set from markup.** The element under test carries `data-force="hover|focus-visible|active"`. Apply with CDP `CSS.forcePseudoState` (real browser pseudo-state) before capture.
+- **hover / focus-visible / active / focus-within**: `src/index.css` redefines those four Tailwind variants (`@custom-variant`) so `[data-force="<state>"]` fires the same utilities as the real pseudo-class. Component source is untouched; real pseudo-classes still work. Verified: hover/focus-visible/active buttons compute different styles from default.
+- **Exception:** `bubble/*/*/button-hover` (14 cells) use a literal `:hover` inside an arbitrary selector, so `data-force` does not reach it. Those need CDP `CSS.forcePseudoState` on the `[data-force=hover]` element.
+- Badge hover cells render as `<a>` (the component only styles hover for anchors).
 - Accordion open and dialog use enter animations; wait ~300ms before capture.
 - alert-dialog content portals to `<body>` as a fixed overlay, so the grid shows triggers; the open popup carries `data-demo="alert-dialog/default/<size>/open-popup"` under `?dialog=<size>`.
 - Calendar is pinned to January 2025 for determinism.
+- Capture viewport: **1440x900**. Some component classes respond to viewport width (`md:`/`sm:` in calendar, alert, alert-dialog), so keep it fixed.
+- `vite.config.ts` sets `allowedHosts: ['.app.github.dev']` so the Codespaces forwarded URL isn't blocked.

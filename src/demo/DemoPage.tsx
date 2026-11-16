@@ -11,7 +11,7 @@ import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/u
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import {
   Attachment, AttachmentAction, AttachmentActions, AttachmentContent, AttachmentDescription,
-  AttachmentMedia, AttachmentTitle,
+  AttachmentMedia, AttachmentTitle, AttachmentTrigger,
 } from '@/components/ui/attachment'
 import {
   Avatar, AvatarBadge, AvatarFallback, AvatarGroup, AvatarGroupCount, AvatarImage,
@@ -32,9 +32,9 @@ import { Calendar } from '@/components/ui/calendar'
  * CDP CSS.forcePseudoState (real browser pseudo-state, not a mocked class).
  * disabled / aria-invalid / aria-expanded / open etc. are real attributes set below.
  */
-type Force = 'hover' | 'focus-visible' | 'active'
+type Force = 'hover' | 'focus-visible' | 'active' | 'focus-within'
 const force = (s: string): { 'data-force'?: Force } =>
-  s === 'hover' || s === 'focus-visible' || s === 'active' ? { 'data-force': s } : {}
+  s === 'hover' || s === 'focus-visible' || s === 'active' || s === 'focus-within' ? { 'data-force': s } : {}
 
 function Cell({ id, fixed, children }: { id: string; fixed?: boolean; children: ReactNode }) {
   return (
@@ -102,7 +102,14 @@ export default function DemoPage() {
       <Section title="badge" cols={4}>
         {cross(badgeVariants, ['default'], ['default', 'hover', 'aria-invalid']).map(([v, s, st]) => (
           <Cell key={`${v}${st}`} id={`badge/${v}/${s}/${st}`}>
-            <Badge variant={v} aria-invalid={st === 'aria-invalid' || undefined} {...force(st)}>Badge</Badge>
+            <Badge
+              variant={v}
+              aria-invalid={st === 'aria-invalid' || undefined}
+              {...(st === 'hover' ? { render: <a href="#" /> } : {})}
+              {...force(st)}
+            >
+              Badge
+            </Badge>
           </Cell>
         ))}
         <Cell id="badge/default/default/with-icon">
@@ -252,6 +259,15 @@ export default function DemoPage() {
             </Cell>
           )),
         )}
+        {(['hover', 'focus-within'] as const).map((st) => (
+          <Cell key={st} id={`attachment/horizontal-icon/default/trigger-${st}`}>
+            <Attachment {...force(st)}>
+              <AttachmentMedia><FileTextIcon /></AttachmentMedia>
+              <AttachmentContent><AttachmentTitle>report.pdf</AttachmentTitle><AttachmentDescription>2.4 MB</AttachmentDescription></AttachmentContent>
+              <AttachmentTrigger aria-label="Open" />
+            </Attachment>
+          </Cell>
+        ))}
         <Cell id="attachment/horizontal-icon/default/media-only"><Attachment><AttachmentMedia><ImageIcon /></AttachmentMedia></Attachment></Cell>
       </Section>
 
