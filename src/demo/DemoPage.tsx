@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { BellIcon, FileTextIcon, ImageIcon, PlusIcon, TriangleAlertIcon, SmileIcon } from 'lucide-react'
+import { BoldIcon, BellIcon, FileTextIcon, ImageIcon, PlusIcon, TriangleAlertIcon, SmileIcon } from 'lucide-react'
 import './demo.css'
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
@@ -25,6 +25,14 @@ import { Bubble, BubbleContent, BubbleGroup, BubbleReactions } from '@/component
 import { Button } from '@/components/ui/button'
 import { ButtonGroup, ButtonGroupText } from '@/components/ui/button-group'
 import { Calendar } from '@/components/ui/calendar'
+import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemSeparator, ItemTitle } from '@/components/ui/item'
+import { Separator } from '@/components/ui/separator'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Toggle } from '@/components/ui/toggle'
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart'
+import { Pie, PieChart } from 'recharts'
 
 /**
  * Forced pseudo-states (hover / focus-visible / active) cannot be set from markup.
@@ -36,11 +44,11 @@ type Force = 'hover' | 'focus-visible' | 'active' | 'focus-within'
 const force = (s: string): { 'data-force'?: Force } =>
   s === 'hover' || s === 'focus-visible' || s === 'active' || s === 'focus-within' ? { 'data-force': s } : {}
 
-function Cell({ id, fixed, children }: { id: string; fixed?: boolean; children: ReactNode }) {
+function Cell({ id, fixed, wide, children }: { id: string; fixed?: boolean; wide?: number; children: ReactNode }) {
   return (
-    <figure className="demo-cell">
+    <figure className="demo-cell" style={wide ? { gridColumn: 'span 2', width: 592 } : undefined}>
       <figcaption>{id}</figcaption>
-      <div className="demo-item" data-demo={id} data-w={fixed ? 'fixed' : undefined}>
+      <div className="demo-item" data-demo={id} data-w={fixed ? 'fixed' : undefined} style={wide ? { width: wide } : undefined}>
         {children}
       </div>
     </figure>
@@ -63,6 +71,20 @@ const IMG =
     "<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><rect width='64' height='64' fill='#8b5cf6'/><circle cx='32' cy='26' r='12' fill='#fff'/><rect x='12' y='42' width='40' height='22' rx='11' fill='#fff'/></svg>",
   )
 
+const pieData = [
+  { browser: 'chrome', visitors: 275, fill: 'var(--color-chrome)' },
+  { browser: 'safari', visitors: 200, fill: 'var(--color-safari)' },
+  { browser: 'firefox', visitors: 187, fill: 'var(--color-firefox)' },
+  { browser: 'edge', visitors: 173, fill: 'var(--color-edge)' },
+]
+const pieConfig = {
+  visitors: { label: 'Visitors' },
+  chrome: { label: 'Chrome', color: 'var(--chart-1)' },
+  safari: { label: 'Safari', color: 'var(--chart-2)' },
+  firefox: { label: 'Firefox', color: 'var(--chart-3)' },
+  edge: { label: 'Edge', color: 'var(--chart-4)' },
+} satisfies ChartConfig
+
 const cross = <A, B, C>(a: readonly A[], b: readonly B[], c: readonly C[]) => a.flatMap((x) => b.flatMap((y) => c.map((z) => [x, y, z] as const)))
 
 export default function DemoPage() {
@@ -72,9 +94,11 @@ export default function DemoPage() {
   const badgeVariants = ['default', 'secondary', 'destructive', 'outline', 'ghost', 'link'] as const
   const bubbleVariants = ['default', 'secondary', 'muted', 'tinted', 'outline', 'ghost', 'destructive'] as const
   const jan = new Date(2025, 0, 1)
+  const tooltipParam = new URLSearchParams(window.location.search).get('tooltip')
   const dialogParam = new URLSearchParams(window.location.search).get('dialog')
 
   return (
+    <TooltipProvider>
     <main className="demo-page">
       <h1>/demo — shadcn base-nova reference</h1>
       <p className="demo-note">
@@ -297,6 +321,124 @@ export default function DemoPage() {
         <Cell id="calendar/single/dropdown/default" fixed><Calendar mode="single" defaultMonth={jan} captionLayout="dropdown" startMonth={new Date(2020, 0)} endMonth={new Date(2030, 11)} /></Cell>
         <Cell id="calendar/single/outline-nav/default" fixed><Calendar mode="single" defaultMonth={jan} buttonVariant="outline" /></Cell>
       </Section>
+
+      <Section title="card" cols={3}>
+        {(['default', 'sm'] as const).flatMap((z) => [
+          <Cell key={`f${z}`} id={`card/default/${z}/full`} fixed>
+            <Card size={z}>
+              <CardHeader><CardTitle>Card title</CardTitle><CardDescription>Card description</CardDescription><CardAction><Button variant="outline" size="sm">Action</Button></CardAction></CardHeader>
+              <CardContent>Card content</CardContent>
+              <CardFooter><Button>Save</Button></CardFooter>
+            </Card>
+          </Cell>,
+          <Cell key={`h${z}`} id={`card/default/${z}/header-only`} fixed>
+            <Card size={z}><CardHeader><CardTitle>Card title</CardTitle><CardDescription>Card description</CardDescription></CardHeader></Card>
+          </Cell>,
+          <Cell key={`c${z}`} id={`card/default/${z}/content-only`} fixed>
+            <Card size={z}><CardContent>Card content</CardContent></Card>
+          </Cell>,
+        ])}
+      </Section>
+
+      <Section title="tabs" cols={3}>
+        {cross(['default', 'line'] as const, ['horizontal', 'vertical'] as const, ['default', 'second-active', 'hover', 'focus-visible', 'disabled-tab'] as const).map(([v, o, st]) => (
+          <Cell key={`${v}${o}${st}`} id={`tabs/${v}/${o}/${st}`} fixed>
+            <Tabs orientation={o} defaultValue={st === 'second-active' ? 'b' : 'a'}>
+              <TabsList variant={v}>
+                <TabsTrigger value="a">Account</TabsTrigger>
+                <TabsTrigger value="b" {...(st === 'hover' || st === 'focus-visible' ? force(st) : {})}>Password</TabsTrigger>
+                <TabsTrigger value="c" disabled={st === 'disabled-tab'}>Billing</TabsTrigger>
+              </TabsList>
+              <TabsContent value="a">Account content</TabsContent>
+              <TabsContent value="b">Password content</TabsContent>
+              <TabsContent value="c">Billing content</TabsContent>
+            </Tabs>
+          </Cell>
+        ))}
+      </Section>
+
+      <Section title="item" cols={3}>
+        {cross(['default', 'outline', 'muted'] as const, ['default', 'sm', 'xs'] as const, ['static', 'link', 'link-hover', 'link-focus-visible'] as const).map(([v, z, st]) => (
+          <Cell key={`${v}${z}${st}`} id={`item/${v}/${z}/${st}`} fixed>
+            <Item
+              variant={v}
+              size={z}
+              {...(st === 'static' ? {} : { render: <a href="#" /> })}
+              {...(st === 'link-hover' ? force('hover') : st === 'link-focus-visible' ? force('focus-visible') : {})}
+            >
+              <ItemMedia variant="icon"><BellIcon /></ItemMedia>
+              <ItemContent><ItemTitle>Item title</ItemTitle><ItemDescription>Item description</ItemDescription></ItemContent>
+              <ItemActions><Button variant="outline" size="sm">Action</Button></ItemActions>
+            </Item>
+          </Cell>
+        ))}
+        <Cell id="item/default/default/media-image" fixed>
+          <Item><ItemMedia variant="image"><img src={IMG} alt="" /></ItemMedia><ItemContent><ItemTitle>Item title</ItemTitle><ItemDescription>Item description</ItemDescription></ItemContent></Item>
+        </Cell>
+        <Cell id="item-group/default/default/with-separator" fixed>
+          <ItemGroup>
+            <Item><ItemContent><ItemTitle>First</ItemTitle></ItemContent></Item>
+            <ItemSeparator />
+            <Item><ItemContent><ItemTitle>Second</ItemTitle></ItemContent></Item>
+          </ItemGroup>
+        </Cell>
+      </Section>
+
+      <Section title="separator" cols={3}>
+        <Cell id="separator/horizontal/default/default" fixed><Separator orientation="horizontal" /></Cell>
+        <Cell id="separator/vertical/default/default" fixed>
+          <div style={{ display: 'flex', height: 24 }}>Left<Separator orientation="vertical" />Right</div>
+        </Cell>
+      </Section>
+
+      <Section
+        title="tooltip"
+        cols={4}
+        note="Popup portals to <body> and only one tooltip can be open at a time. Open state: /demo?tooltip=top|right|bottom|left (data-demo is on the popup: tooltip/default/<side>/open-popup). Trigger hover is not forceable (Base UI opens on pointer events)."
+      >
+        {(['top', 'right', 'bottom', 'left'] as const).map((side) => (
+          <Cell key={side} id={`tooltip/default/${side}/${tooltipParam === side ? 'open' : 'closed'}`}>
+            <Tooltip defaultOpen={tooltipParam === side}>
+              <TooltipTrigger render={<Button variant="outline" />}>Hover</TooltipTrigger>
+              <TooltipContent side={side} {...(tooltipParam === side ? { 'data-demo': `tooltip/default/${side}/open-popup` } : {})}>Tooltip text</TooltipContent>
+            </Tooltip>
+          </Cell>
+        ))}
+        <Cell id="tooltip/default/top/trigger-focus-visible">
+          <Tooltip><TooltipTrigger render={<Button variant="outline" data-force="focus-visible" />}>Focus</TooltipTrigger><TooltipContent>Tooltip text</TooltipContent></Tooltip>
+        </Cell>
+      </Section>
+
+      <Section title="toggle" cols={6}>
+        {cross(['default', 'outline'] as const, ['default', 'sm', 'lg'] as const, ['default', 'pressed', 'hover', 'focus-visible', 'disabled', 'aria-invalid'] as const).map(([v, z, st]) => (
+          <Cell key={`${v}${z}${st}`} id={`toggle/${v}/${z}/${st}`}>
+            <Toggle
+              variant={v}
+              size={z}
+              aria-label="Bold"
+              defaultPressed={st === 'pressed' || undefined}
+              disabled={st === 'disabled'}
+              aria-invalid={st === 'aria-invalid' || undefined}
+              {...force(st)}
+            >
+              <BoldIcon />
+            </Toggle>
+          </Cell>
+        ))}
+      </Section>
+
+      <Section title="chart" cols={2} note="Donut pie, 4 slices, legend, tooltip pinned open (Tooltip defaultIndex=0). Recharts animation disabled for deterministic capture.">
+        <Cell id="chart/pie-donut/default/legend-tooltip" wide={400}>
+          <ChartContainer config={pieConfig}>
+            <PieChart>
+              <ChartTooltip defaultIndex={0} content={<ChartTooltipContent hideLabel nameKey="browser" />} />
+              <Pie data={pieData} dataKey="visitors" nameKey="browser" innerRadius={45} isAnimationActive={false} />
+              <ChartLegend content={<ChartLegendContent nameKey="browser" />} />
+            </PieChart>
+          </ChartContainer>
+        </Cell>
+      </Section>
     </main>
+    </TooltipProvider>
   )
 }

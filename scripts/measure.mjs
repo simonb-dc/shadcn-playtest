@@ -69,6 +69,7 @@ for (const theme of ['light', 'dark']) {
     ['/demo', ''],
     ['/demo?dialog=default', 'dialog'],
     ['/demo?dialog=sm', 'dialog'],
+    ...['top', 'right', 'bottom', 'left'].map((side) => [`/demo?tooltip=${side}`, 'tooltip']),
   ]
   for (const [u, kind] of urls) {
     const sep = u.includes('?') ? '&' : '?'
