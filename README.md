@@ -63,3 +63,11 @@ The `cn` import is `cn@0.5.2` (official `shadcn-ui/cn` package, registry default
 
 `npm run dev` in one shell, then `node scripts/measure.mjs [baseUrl]` (default `http://localhost:5173/shadcn-playtest`). Playwright is a devDependency; run `npx playwright install chromium` once.
 Writes `measurements/light.json`, `measurements/dark.json` (keyed by `data-demo` id; `?dialog=default|sm` and `?tooltip=top|right|bottom|left` open states merged in) and `measurements/shots/*.png` (light only). Viewport 1440x900. Node `0` in each entry is the `data-demo` wrapper; the component is its child. Infinite animations (attachment shimmer) are cancelled to base style; `data-force` elements are also forced via CDP so bubble hover applies.
+
+## Figma traceability / upstream sync
+
+**Code is the source of truth.** `figma-map.json` links each component in `src/components/ui/` to its Figma component-set node IDs (file `7FfUnoOiC22clHRrl1EFOS`) and to its key prefix in `measurements/*.json`.
+
+1. Run `npm run sync:check` (needs network for the shadcn registry and `npx playwright install chromium`). It re-adds every mapped component with `npx shadcn@latest add <name> --overwrite`, prints `git diff --stat src/components/ui`, re-runs `scripts/measure.mjs` (starting vite if needed), and prints per component which sizes, colours, radius, padding and font values changed versus the committed measurements. It always exits 0 and leaves everything unstaged. Components missing upstream (e.g. custom ones) are listed as not updated.
+2. Review with `git diff`. Discard with `git checkout -- src measurements`.
+3. For each changed component, look up its node IDs in `figma-map.json` and update the matching Figma component set. Commit code, measurements and Figma changes together.
