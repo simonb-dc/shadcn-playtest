@@ -1,0 +1,13 @@
+{
+  "name": "Code Sync (shadcn-playtest)",
+  "id": "shadcn-playtest-code-sync",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["https://raw.githubusercontent.com", "https://api.github.com"],
+    "reasoning": "Reads figma-map.json, measurements and the latest commit SHA from the shadcn-playtest repo."
+  }
+}

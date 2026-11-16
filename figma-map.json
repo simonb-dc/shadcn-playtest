@@ -1,25 +1,40 @@
 {
   "figmaFile": "7FfUnoOiC22clHRrl1EFOS",
-  "note": "Code is the source of truth. Node IDs are Figma component sets. 'measure' is the key prefix in measurements/light.json.",
+  "note": "Code is the source of truth. Node IDs are Figma component sets. 'measure' is the key prefix in measurements/light.json. 'variantMap' (optional): code key = measure + '/' + the 'key' segments, where {prop} is replaced by that Figma variant property's value (case-insensitive property match, lower-cased value, 'values' translates it to the code value). 'variantMap' may be an array (one map per Figma set). 'skip' = {prop:[values]} silently skips those variants. Components without variantMap are skipped by the Figma plugin.",
   "components": {
     "accordion":    { "code": "src/components/ui/accordion.tsx",     "figma": { "Accordion": "17:12" },        "measure": "accordion" },
-    "alert":        { "code": "src/components/ui/alert.tsx",         "figma": { "Alert": "16:8" },             "measure": "alert" },
+    "alert":        { "code": "src/components/ui/alert.tsx",         "figma": { "Alert": "16:8" },             "measure": "alert",
+      "variantMap": { "figmaNode": "Alert", "key": ["{variant}", "default", "{action}"], "values": { "action": { "true": "action", "false": "title-description" } } }
+    },
     "alert-dialog": { "code": "src/components/ui/alert-dialog.tsx",  "figma": { "AlertDialog": "84:249" },    "measure": "alert-dialog" },
     "aspect-ratio": { "code": "src/components/ui/aspect-ratio.tsx",  "figma": { "AspectRatio": "79:225" },    "measure": "aspect-ratio" },
     "attachment":   { "code": "src/components/ui/attachment.tsx",    "figma": { "Attachment": "54:136" },    "measure": "attachment" },
-    "avatar":       { "code": "src/components/ui/avatar.tsx",        "figma": { "Avatar": "78:171", "AvatarGroup": "79:216" }, "measure": "avatar" },
-    "badge":        { "code": "src/components/ui/badge.tsx",         "figma": { "Badge": "14:16" },           "measure": "badge" },
+    "avatar":       { "code": "src/components/ui/avatar.tsx",        "figma": { "Avatar": "78:171", "AvatarGroup": "79:216" }, "measure": "avatar",
+      "variantMap": { "figmaNode": "Avatar", "key": ["{type}", "{size}", "{badge}"], "values": { "badge": { "true": "badge", "false": "default", "on": "badge", "off": "default", "yes": "badge", "no": "default" } } }
+    },
+    "badge":        { "code": "src/components/ui/badge.tsx",         "figma": { "Badge": "14:16" },           "measure": "badge",
+      "variantMap": { "figmaNode": "Badge", "key": ["{variant}", "default", "default"] }
+    },
     "breadcrumb":   { "code": "src/components/ui/breadcrumb.tsx",    "figma": { "Breadcrumb": "84:271" },    "measure": "breadcrumb" },
     "bubble":       { "code": "src/components/ui/bubble.tsx",        "figma": { "Bubble": "57:23" },         "measure": "bubble" },
-    "button":       { "code": "src/components/ui/button.tsx",        "figma": { "Button": "33:290", "Button (icon)": "34:50" }, "measure": "button" },
+    "button":       { "code": "src/components/ui/button.tsx",        "figma": { "Button": "33:290", "Button (icon)": "34:50" }, "measure": "button",
+      "variantMap": [
+        { "figmaNode": "Button", "key": ["{variant}", "{size}", "{state}"], "values": { "state": { "default": "default", "hover": "hover", "focus": "focus-visible", "disabled": "disabled" } } },
+        { "figmaNode": "Button (icon)", "key": ["{variant}", "{size}", "{state}"], "values": { "state": { "default": "default", "hover": "hover", "focus": "focus-visible", "disabled": "disabled" } } }
+      ]
+    },
     "button-group": { "code": "src/components/ui/button-group.tsx",  "figma": { "Button Group": "83:243" },  "measure": "button-group" },
     "calendar":     { "code": "src/components/ui/calendar.tsx",      "figma": { "Calendar": "85:449", "CalendarDay": "58:36", "CalendarNavButton": "58:43" }, "measure": "calendar" },
-    "card":         { "code": "src/components/ui/card.tsx",          "figma": { "Card": "89:459" },          "measure": "card" },
+    "card":         { "code": "src/components/ui/card.tsx",          "figma": { "Card": "89:459" },          "measure": "card",
+      "variantMap": { "figmaNode": "Card", "key": ["default", "{size}", "{footer}"], "values": { "footer": { "true": "full" } }, "skip": { "footer": ["false"] } }
+    },
     "chart":        { "code": "src/components/ui/chart.tsx",         "figma": { "ChartDonut": "92:442", "ChartLegend": "92:447", "ChartTooltip": "92:460" }, "measure": "chart" },
     "item":         { "code": "src/components/ui/item.tsx",          "figma": { "Item": "90:537" },          "measure": "item" },
     "separator":    { "code": "src/components/ui/separator.tsx",     "figma": { "Separator": "90:401" },     "measure": "separator" },
     "tabs":         { "code": "src/components/ui/tabs.tsx",          "figma": { "TabsList": "90:452", "TabsTrigger": "90:436" }, "measure": "tabs" },
-    "toggle":       { "code": "src/components/ui/toggle.tsx",        "figma": { "Toggle": "90:574" },        "measure": "toggle" },
+    "toggle":       { "code": "src/components/ui/toggle.tsx",        "figma": { "Toggle": "90:574" },        "measure": "toggle",
+      "variantMap": { "figmaNode": "Toggle", "key": ["{variant}", "{size}", "{state}"], "values": { "state": { "off": "default", "on": "pressed", "hover": "hover", "focus": "focus-visible", "disabled": "disabled", "invalid": "aria-invalid" } } }
+    },
     "tooltip":      { "code": "src/components/ui/tooltip.tsx",       "figma": { "Tooltip": "90:418" },       "measure": "tooltip" }
   },
   "supporting": { "Icons": "70:158", "Image": "122:819" }

@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 12px/1.4 Inter, system-ui, sans-serif; margin: 0; color: var(--figma-color-text, #222); background: var(--figma-color-bg, #fff); }
+  header { position: sticky; top: 0; background: var(--figma-color-bg, #fff); border-bottom: 1px solid var(--figma-color-border, #ddd); padding: 8px 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; z-index: 1; }
+  header .meta { color: var(--figma-color-text-secondary, #666); }
+  code { font-family: ui-monospace, monospace; background: var(--figma-color-bg-secondary, #eee); padding: 1px 4px; border-radius: 3px; }
+  button { font: inherit; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--figma-color-border, #ccc); background: var(--figma-color-bg, #fff); color: inherit; cursor: pointer; }
+  button.primary { background: var(--figma-color-bg-brand, #0d99ff); color: #fff; border-color: transparent; }
+  button:disabled { opacity: .5; cursor: default; }
+  #banner { display: none; margin: 8px 12px 0; padding: 6px 10px; border-radius: 5px; background: #fff3cd; color: #5c4400; }
+  #banner.error { background: #fde2e1; color: #7a1410; }
+  main { padding: 8px 12px 16px; }
+  h2 { font-size: 13px; margin: 14px 0 4px; }
+  h2 small { font-weight: 400; color: var(--figma-color-text-secondary, #666); }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--figma-color-border, #eee); vertical-align: top; }
+  th { font-weight: 600; color: var(--figma-color-text-secondary, #666); }
+  td.actions { white-space: nowrap; text-align: right; }
+  .sw { display: inline-block; width: 10px; height: 10px; border: 1px solid #8884; border-radius: 2px; vertical-align: -1px; margin-right: 4px; }
+  ul { margin: 4px 0; padding-left: 18px; color: var(--figma-color-text-secondary, #666); }
+  .ok { color: #1a7f37; }
+</style>
+</head>
+<body>
+<header>
+  <button id="sync" class="primary">Sync</button>
+  <span class="meta">Last checked: <span id="checked">never</span></span>
+  <span class="meta">Repo commit: <code id="sha">-</code></span>
+  <button id="clear" title="Show every ignored item again">Clear ignored</button>
+</header>
+<div id="banner"></div>
+<main id="out">Loading…</main>
+<script>__UI_JS__</script>
+</body>
+</html>

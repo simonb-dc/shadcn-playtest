@@ -72,3 +72,24 @@ Writes `measurements/light.json`, `measurements/dark.json` (keyed by `data-demo`
 1. Run `npm run sync:check` (needs network for the shadcn registry and `npx playwright install chromium`). It re-adds every mapped component with `npx shadcn@latest add <name> --overwrite`, prints `git diff --stat src/components/ui`, re-runs `scripts/measure.mjs` (starting vite if needed), and prints per component which sizes, colours, radius, padding and font values changed versus the committed measurements. Width/height differences under 1px and `measurements/shots` are ignored in the diff output. It always exits 0 and leaves everything unstaged. Components missing upstream (e.g. custom ones) are listed as not updated.
 2. Review with `git diff`. Discard with `git checkout -- src measurements`.
 3. For each changed component, look up its node IDs in `figma-map.json` and update the matching Figma component set. Commit code, measurements and Figma changes together.
+
+## Figma sync plugin
+
+`figma-plugin/` is a Figma desktop plugin that compares the Figma component sets listed in `figma-map.json` against the code measurements on `main` and lets you fix the differences.
+
+**Install**
+1. Download or clone this repo (you only need the `figma-plugin/` folder; `code.js` and `ui.html` are committed pre-built).
+2. In Figma desktop: **Plugins > Development > Import plugin from manifest…** and pick `figma-plugin/manifest.json`.
+3. Open the file `7FfUnoOiC22clHRrl1EFOS` (or a copy) and run **Plugins > Development > Code Sync (shadcn-playtest)**.
+
+**What it does**
+- On open and on **Sync**, fetches `figma-map.json`, `measurements/light.json`, `measurements/dark.json` (raw.githubusercontent.com) and the latest `main` commit SHA (api.github.com).
+- For each component with a `variantMap` (button, badge, toggle, avatar, alert, card), measures every variant (width, height, corner radius, padding, gap, font size/weight/line height, fill and text colour; variable-bound colours resolve to their light value) and compares with the matching code measurement. Width/height differences under 1px are ignored. Components without a `variantMap` are skipped and listed in the UI.
+- Lists differences grouped by component (variant, property, code value, Figma value). **Apply** sets the Figma value; for colours it updates the bound variable's light value instead of overriding the node. **Ignore** is stored in `figma.clientStorage` and stays hidden until the code value changes. **Clear ignored** resets this.
+- While open, checks the commit SHA every 5 minutes and re-runs only if it changed (shows a "repo changed, re-checking" banner).
+
+`variantMap` in `figma-map.json`: `key` lists the segments after the `measure` prefix; `{prop}` takes the Figma variant property value (property names and values match case-insensitively), and `values` translates Figma values to code values (e.g. toggle `on` to `pressed`). `variantMap` can also be an array (one map per Figma set, e.g. Button and Button (icon)), and `skip: {prop: [values]}` silently skips variants that have no code equivalent (e.g. Card footer=false). Code states Figma doesn't have (active, aria-invalid, default-with-icon) are never reported. Variants with no matching code key are listed under "Unmatched variants".
+
+**Rebuild** after editing `figma-plugin/src`: `cd figma-plugin && npm install && npm run build` (`npm test` checks the key/colour logic against the real measurements).
+
+**CI drift check**: `.github/workflows/drift.yml` runs `npm run sync:check` daily, on push to `main` and on manual dispatch, and opens or updates an issue titled "Upstream drift detected" if anything changed. It never commits.
