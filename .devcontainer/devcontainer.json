@@ -1,0 +1,7 @@
+{
+  "name": "shadcn-playtest",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:24",
+  "forwardPorts": [5173],
+  "portsAttributes": { "5173": { "label": "vite /demo", "onAutoForward": "openBrowser" } },
+  "postCreateCommand": "npm ci"
+}
