@@ -57,7 +57,10 @@ async function forceStates(page) {
   return nodeIds.length
 }
 
-const browser = await chromium.launch()
+// Prefer an explicit/preinstalled Chromium (no Playwright browser download needed); else Playwright's default.
+const CHROMIUM = [process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE, '/opt/pw-browsers/chromium']
+  .find((p) => p && fs.existsSync(p))
+const browser = await chromium.launch(CHROMIUM ? { executablePath: CHROMIUM } : {})
 const sizes = {}
 fs.mkdirSync(path.join(OUT, 'shots'), { recursive: true })
 
