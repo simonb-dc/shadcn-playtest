@@ -62,6 +62,7 @@ The `cn` import is `cn@0.5.2` (official `shadcn-ui/cn` package, registry default
 ## Measurements
 
 `npm run dev` in one shell, then `node scripts/measure.mjs [baseUrl]` (default `http://localhost:5173/shadcn-playtest`). Playwright is a devDependency; run `npx playwright install chromium` once, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` (the script also uses `/opt/pw-browsers/chromium` if it exists) to use an existing Chromium.
+The committed baseline is generated in the Claude Code cloud environment; run `npm run sync:check` there for comparable results.
 Writes `measurements/light.json`, `measurements/dark.json` (keyed by `data-demo` id; `?dialog=default|sm` and `?tooltip=top|right|bottom|left` open states merged in) and `measurements/shots/*.png` (light only). Viewport 1440x900. Node `0` in each entry is the `data-demo` wrapper; the component is its child. Infinite animations (attachment shimmer) are cancelled to base style; `data-force` elements are also forced via CDP so bubble hover applies.
 
 ## Figma traceability / upstream sync
