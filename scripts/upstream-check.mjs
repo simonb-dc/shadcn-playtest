@@ -2,7 +2,7 @@
 // 1. Re-add every component in figma-map.json from upstream shadcn (--overwrite) and show the diff.
 // 2. Re-run scripts/measure.mjs (starts vite if nothing is listening).
 // 3. Diff new measurements/{light,dark}.json against the committed ones, per component.
-// Always exits 0. Nothing is staged; review with `git diff`, discard with `git checkout -- src measurements`.
+// Width/height/rect differences under 1px and measurements/shots are ignored in the diff output. Always exits 0. Nothing is staged; review with `git diff`, discard with `git checkout -- src measurements`.
 import { spawn, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 
@@ -55,6 +55,12 @@ const BUCKETS = {
   padding: ['padding', 'margin', 'gap'],
   font: ['font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing', 'text-decoration-line'],
 }
+const TOL = 1 // px: ignore width/height/rect differences below this
+const SIZE_PROPS = new Set(['width', 'height'])
+const sameSize = (a, b) => {
+  const x = parseFloat(a), y = parseFloat(b)
+  return Number.isFinite(x) && Number.isFinite(y) ? Math.abs(x - y) < TOL : a === b
+}
 const bucketOf = (p) => Object.keys(BUCKETS).find((b) => BUCKETS[b].includes(p)) ?? 'other'
 const measures = Object.entries(map.components).map(([k, c]) => [c.measure, k]).sort((a, b) => b[0].length - a[0].length)
 const componentOf = (id) => {
@@ -83,10 +89,11 @@ for (const theme of ['light', 'dark']) {
       if (!n[p]) { add(comp, `${where}: node REMOVED`); continue }
       const props = new Set([...Object.keys(o[p].style), ...Object.keys(n[p].style)])
       for (const prop of props) {
-        if (o[p].style[prop] !== n[p].style[prop]) add(comp, `${where} ${bucketOf(prop)}: ${prop} ${o[p].style[prop]} -> ${n[p].style[prop]}`)
+        const a = o[p].style[prop], b = n[p].style[prop]
+        if (SIZE_PROPS.has(prop) ? !sameSize(a, b) : a !== b) add(comp, `${where} ${bucketOf(prop)}: ${prop} ${o[p].style[prop]} -> ${n[p].style[prop]}`)
       }
       for (const d of ['width', 'height']) {
-        if (o[p].rect[d] !== n[p].rect[d] && o[p].style[d] === n[p].style[d]) add(comp, `${where} sizes: rect.${d} ${o[p].rect[d]} -> ${n[p].rect[d]}`)
+        if (!sameSize(o[p].rect[d], n[p].rect[d]) && sameSize(o[p].style[d], n[p].style[d])) add(comp, `${where} sizes: rect.${d} ${o[p].rect[d]} -> ${n[p].rect[d]}`)
       }
     }
   }
@@ -100,5 +107,5 @@ for (const c of names) {
   console.log(`\n# ${c}${fig ? `  (Figma: ${Object.entries(fig).map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}`)
   for (const l of changes[c]) console.log('  ' + l)
 }
-console.log('\nChanges left unstaged. Review: git diff / git status. Discard: git checkout -- src measurements')
+console.log('\nChanges left unstaged. Review: git diff -- src measurements/light.json measurements/dark.json (measurements/shots/*.png also change; ignored here). Discard: git checkout -- src measurements')
 process.exit(0)
