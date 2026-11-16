@@ -1,11 +1,17 @@
 "use strict";
 (() => {
   // src/shared.ts
+  var asList = (vm) => Array.isArray(vm) ? vm : [vm];
   function getProp(props, name) {
     const k = Object.keys(props).find((p) => p.toLowerCase() === name.toLowerCase());
     return k === void 0 ? void 0 : props[k];
   }
   function resolveKey(measure, vm, props) {
+    var _a;
+    for (const [p, vals] of Object.entries((_a = vm.skip) != null ? _a : {})) {
+      const raw = getProp(props, p);
+      if (raw !== void 0 && vals.some((x) => x.toLowerCase() === raw.trim().toLowerCase())) return { skip: true };
+    }
     const segs = [];
     for (const tpl of vm.key) {
       const m = /^\{(.+)\}$/.exec(tpl);
@@ -238,63 +244,65 @@
     const notes = [];
     let ignoredCount = 0;
     for (const [comp, c] of Object.entries(map.components)) {
-      const vm = c.variantMap;
-      if (!vm) {
+      if (!c.variantMap) {
         skipped.push({ component: comp, reason: "no variantMap in figma-map.json" });
         continue;
       }
-      const setName = vm.figmaNode && c.figma[vm.figmaNode] ? vm.figmaNode : Object.keys(c.figma)[0];
-      const nodeId = c.figma[setName];
-      const set = await figma.getNodeByIdAsync(nodeId);
-      if (!set || set.type !== "COMPONENT_SET") {
-        skipped.push({ component: comp, reason: `node ${nodeId} (${setName}) not found or not a component set in this file` });
-        continue;
-      }
-      for (const v of set.children) {
-        if (v.type !== "COMPONENT") continue;
-        const props = variantProps(v);
-        const label = Object.entries(props).map(([k, x]) => `${k}=${x}`).join(", ");
-        const r = resolveKey(c.measure, vm, props);
-        if ("error" in r) {
-          notes.push(`${comp} [${label}]: ${r.error}`);
+      for (const vm of asList(c.variantMap)) {
+        const setName = vm.figmaNode && c.figma[vm.figmaNode] ? vm.figmaNode : Object.keys(c.figma)[0];
+        const nodeId = c.figma[setName];
+        const set = await figma.getNodeByIdAsync(nodeId);
+        if (!set || set.type !== "COMPONENT_SET") {
+          skipped.push({ component: comp, reason: `node ${nodeId} (${setName}) not found or not a component set in this file` });
           continue;
         }
-        const entry = light[r.key];
-        if (!entry) {
-          notes.push(`${comp} [${label}]: no code measurement "${r.key}"`);
-          continue;
-        }
-        const code = measureCode(entry);
-        if (!code) {
-          notes.push(`${comp} [${label}]: empty code measurement "${r.key}"`);
-          continue;
-        }
-        const f = await measureFigma(v);
-        const push = (prop, codeS, figS, value, target) => {
-          const id = `${comp}|${label}|${prop}`;
-          if (ignored[id] === codeS) {
-            ignoredCount++;
-            return;
+        for (const v of set.children) {
+          if (v.type !== "COMPONENT") continue;
+          const props = variantProps(v);
+          const label = (setName !== comp && Object.keys(c.figma).length > 1 ? setName + ": " : "") + Object.entries(props).map(([k, x]) => `${k}=${x}`).join(", ");
+          const r = resolveKey(c.measure, vm, props);
+          if ("skip" in r) continue;
+          if ("error" in r) {
+            notes.push(`${comp} [${label}]: ${r.error}`);
+            continue;
           }
-          diffs.push({ id, component: comp, variant: label, prop, code: codeS, figma: figS, nodeId: v.id, textNodeId: target, value });
-        };
-        const num2 = (prop, a, b, tol, target) => {
-          if (a === null || b === null || Math.abs(a - b) < tol) return;
-          push(prop, fmt(a), fmt(b), a, target);
-        };
-        num2("width", code.width, f.width, 1);
-        num2("height", code.height, f.height, 1);
-        if (code.radius && code.radius.some((x, i) => Math.abs(x - f.radius[i]) >= 0.01)) push("corner radius", fmtBox(code.radius), fmtBox(f.radius), code.radius);
-        if (code.padding && f.padding && code.padding.some((x, i) => Math.abs(x - f.padding[i]) >= 0.01)) push("padding", fmtBox(code.padding), fmtBox(f.padding), code.padding);
-        num2("gap", code.gap, f.gap, 0.01);
-        if (f.text) {
-          num2("font size", code.fontSize, f.fontSize, 0.01, f.text.id);
-          num2("font weight", code.fontWeight, f.fontWeight, 0.5, f.text.id);
-          num2("line height", code.lineHeight, f.lineHeight, 0.01, f.text.id);
-          if (code.textColor !== void 0 && f.tfill && !sameColor(code.textColor, f.tfill.color))
-            push("text colour", toHex(code.textColor), toHex(f.tfill.color), code.textColor, f.text.id);
+          const entry = light[r.key];
+          if (!entry) {
+            notes.push(`${comp} [${label}]: no code measurement "${r.key}"`);
+            continue;
+          }
+          const code = measureCode(entry);
+          if (!code) {
+            notes.push(`${comp} [${label}]: empty code measurement "${r.key}"`);
+            continue;
+          }
+          const f = await measureFigma(v);
+          const push = (prop, codeS, figS, value, target) => {
+            const id = `${comp}|${label}|${prop}`;
+            if (ignored[id] === codeS) {
+              ignoredCount++;
+              return;
+            }
+            diffs.push({ id, component: comp, variant: label, prop, code: codeS, figma: figS, nodeId: v.id, textNodeId: target, value });
+          };
+          const num2 = (prop, a, b, tol, target) => {
+            if (a === null || b === null || Math.abs(a - b) < tol) return;
+            push(prop, fmt(a), fmt(b), a, target);
+          };
+          num2("width", code.width, f.width, 1);
+          num2("height", code.height, f.height, 1);
+          if (code.radius && code.radius.some((x, i) => Math.abs(x - f.radius[i]) >= 0.01)) push("corner radius", fmtBox(code.radius), fmtBox(f.radius), code.radius);
+          if (code.padding && f.padding && code.padding.some((x, i) => Math.abs(x - f.padding[i]) >= 0.01)) push("padding", fmtBox(code.padding), fmtBox(f.padding), code.padding);
+          num2("gap", code.gap, f.gap, 0.01);
+          if (f.text) {
+            num2("font size", code.fontSize, f.fontSize, 0.01, f.text.id);
+            num2("font weight", code.fontWeight, f.fontWeight, 0.5, f.text.id);
+            num2("line height", code.lineHeight, f.lineHeight, 0.01, f.text.id);
+            if (code.textColor !== void 0 && f.tfill && !sameColor(code.textColor, f.tfill.color))
+              push("text colour", toHex(code.textColor), toHex(f.tfill.color), code.textColor, f.text.id);
+          }
+          if (!sameColor(code.fill, f.fill.color)) push("fill colour", toHex(code.fill), toHex(f.fill.color), code.fill);
         }
-        if (!sameColor(code.fill, f.fill.color)) push("fill colour", toHex(code.fill), toHex(f.fill.color), code.fill);
       }
     }
     return { diffs, skipped, notes, ignoredCount, checkedAt: Date.now() };

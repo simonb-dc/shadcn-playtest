@@ -1,6 +1,6 @@
 import {
   Diff, FigmaMap, CodeNode, Measured, Rgba, measureCode, resolveKey, sameColor, toHex, fmt, fmtBox,
-  weightFromStyle,
+  weightFromStyle, asList,
 } from './shared'
 
 figma.showUI(__html__, { width: 520, height: 640, themeColors: true })
@@ -104,8 +104,8 @@ async function compare(): Promise<Result> {
   let ignoredCount = 0
 
   for (const [comp, c] of Object.entries(map.components)) {
-    const vm = c.variantMap
-    if (!vm) { skipped.push({ component: comp, reason: 'no variantMap in figma-map.json' }); continue }
+    if (!c.variantMap) { skipped.push({ component: comp, reason: 'no variantMap in figma-map.json' }); continue }
+    for (const vm of asList(c.variantMap)) {
     const setName = vm.figmaNode && c.figma[vm.figmaNode] ? vm.figmaNode : Object.keys(c.figma)[0]
     const nodeId = c.figma[setName]
     const set = await figma.getNodeByIdAsync(nodeId)
@@ -116,8 +116,9 @@ async function compare(): Promise<Result> {
     for (const v of set.children) {
       if (v.type !== 'COMPONENT') continue
       const props = variantProps(v)
-      const label = Object.entries(props).map(([k, x]) => `${k}=${x}`).join(', ')
+      const label = (setName !== comp && Object.keys(c.figma).length > 1 ? setName + ': ' : '') + Object.entries(props).map(([k, x]) => `${k}=${x}`).join(', ')
       const r = resolveKey(c.measure, vm, props)
+      if ('skip' in r) continue
       if ('error' in r) { notes.push(`${comp} [${label}]: ${r.error}`); continue }
       const entry = light[r.key]
       if (!entry) { notes.push(`${comp} [${label}]: no code measurement "${r.key}"`); continue }
@@ -146,6 +147,7 @@ async function compare(): Promise<Result> {
           push('text colour', toHex(code.textColor), toHex(f.tfill.color), code.textColor, f.text.id)
       }
       if (!sameColor(code.fill, f.fill.color)) push('fill colour', toHex(code.fill), toHex(f.fill.color), code.fill)
+    }
     }
   }
   return { diffs, skipped, notes, ignoredCount, checkedAt: Date.now() }

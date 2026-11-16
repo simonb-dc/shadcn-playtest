@@ -88,7 +88,7 @@ Writes `measurements/light.json`, `measurements/dark.json` (keyed by `data-demo`
 - Lists differences grouped by component (variant, property, code value, Figma value). **Apply** sets the Figma value; for colours it updates the bound variable's light value instead of overriding the node. **Ignore** is stored in `figma.clientStorage` and stays hidden until the code value changes. **Clear ignored** resets this.
 - While open, checks the commit SHA every 5 minutes and re-runs only if it changed (shows a "repo changed, re-checking" banner).
 
-`variantMap` in `figma-map.json`: `key` lists the segments after the `measure` prefix; `{prop}` takes the Figma variant property value (property names and values match case-insensitively), and `values` translates Figma values to code values (e.g. toggle `on` to `pressed`). Variants with no matching code key are listed under "Unmatched variants".
+`variantMap` in `figma-map.json`: `key` lists the segments after the `measure` prefix; `{prop}` takes the Figma variant property value (property names and values match case-insensitively), and `values` translates Figma values to code values (e.g. toggle `on` to `pressed`). `variantMap` can also be an array (one map per Figma set, e.g. Button and Button (icon)), and `skip: {prop: [values]}` silently skips variants that have no code equivalent (e.g. Card footer=false). Code states Figma doesn't have (active, aria-invalid, default-with-icon) are never reported. Variants with no matching code key are listed under "Unmatched variants".
 
 **Rebuild** after editing `figma-plugin/src`: `cd figma-plugin && npm install && npm run build` (`npm test` checks the key/colour logic against the real measurements).
 

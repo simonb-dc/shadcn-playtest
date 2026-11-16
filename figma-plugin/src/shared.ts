@@ -4,12 +4,14 @@ export type VariantMap = {
   figmaNode?: string
   key: string[] // e.g. ["{variant}", "default", "{state}"]
   values?: Record<string, Record<string, string>>
+  /** Figma variants to skip silently, e.g. { footer: ["false"] } */
+  skip?: Record<string, string[]>
 }
 export type MapComponent = {
   code: string
   figma: Record<string, string>
   measure: string
-  variantMap?: VariantMap
+  variantMap?: VariantMap | VariantMap[]
 }
 export type FigmaMap = { figmaFile: string; components: Record<string, MapComponent> }
 
@@ -24,6 +26,8 @@ export type CodeNode = {
 
 export type Rgba = { r: number; g: number; b: number; a: number } // 0..1
 
+export const asList = (vm: VariantMap | VariantMap[]): VariantMap[] => (Array.isArray(vm) ? vm : [vm])
+
 /** Case-insensitive lookup of a Figma variant property. */
 export function getProp(props: Record<string, string>, name: string): string | undefined {
   const k = Object.keys(props).find((p) => p.toLowerCase() === name.toLowerCase())
@@ -35,7 +39,11 @@ export function resolveKey(
   measure: string,
   vm: VariantMap,
   props: Record<string, string>,
-): { key: string } | { error: string } {
+): { key: string } | { skip: true } | { error: string } {
+  for (const [p, vals] of Object.entries(vm.skip ?? {})) {
+    const raw = getProp(props, p)
+    if (raw !== undefined && vals.some((x) => x.toLowerCase() === raw.trim().toLowerCase())) return { skip: true }
+  }
   const segs: string[] = []
   for (const tpl of vm.key) {
     const m = /^\{(.+)\}$/.exec(tpl)
