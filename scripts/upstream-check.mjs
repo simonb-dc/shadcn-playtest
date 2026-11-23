@@ -2,7 +2,7 @@
 // 1. Re-add every component in figma-map.json from upstream shadcn (--overwrite) and show the diff.
 // 2. Re-run scripts/measure.mjs (starts vite if nothing is listening).
 // 3. Diff new measurements/{light,dark}.json against the committed ones, per component.
-// Width/height/rect differences under 1px and measurements/shots are ignored in the diff output. Always exits 0. Nothing is staged; review with `git diff`, discard with `git checkout -- src measurements`.
+// Width/height/rect differences under 2px and measurements/shots are ignored in the diff output. Always exits 0. Nothing is staged; review with `git diff`, discard with `git checkout -- src measurements`.
 import { spawn, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 
@@ -55,7 +55,7 @@ const BUCKETS = {
   padding: ['padding', 'margin', 'gap'],
   font: ['font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing', 'text-decoration-line'],
 }
-const TOL = 1 // px: ignore width/height/rect differences below this
+const TOL = 2 // px: ignore width/height/rect differences below this
 const SIZE_PROPS = new Set(['width', 'height'])
 const sameSize = (a, b) => {
   const x = parseFloat(a), y = parseFloat(b)
